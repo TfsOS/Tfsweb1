@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to TFS</title>
+    <style>
+        .hidden {
+            display: none;
+        }
+        .captcha-box {
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            background-color: #e0e0e0;
+            padding: 10px;
+            user-select: none; /* Prevent copying */
+        }
+        .captcha-reload {
+            margin-top: 10px;
+            color: blue;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+        .error-message {
+            color: red;
+            font-size: 14px;
+        }
+        .message {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Welcome to TFS</h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#work">Work</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Text Barrier -->
+        <p id="textBarrier" class="hidden">Users will only be able to see the TFS website content after successful login.</p>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br><br>
+            
+            <!-- CAPTCHA Section -->
+            <div class="captcha-box" id="captcha-box"></div>
+            <input type="text" id="captcha-input" placeholder="Enter CAPTCHA" required><br>
+            <span id="captcha-error" class="error-message hidden">Incorrect CAPTCHA. Please try again.</span><br><br>
+            <span class="captcha-reload" onclick="generateCaptcha()">Reload CAPTCHA</span><br><br>
+
+            <button type="submit">Login</button>
+            <button type="button" id="logoutButton" class="hidden">Logout</button> <!-- Initially hidden -->
+        </form>
+
+        <p><a href="create_account.html" id="createAccountLink">CREATE ACCOUNT</a></p>   
+
+        <!-- Website Content (Initially Hidden) -->
+        <div id="websiteContent" class="hidden">
+            <section id="about">
+                <h2>About Us</h2>
+                <p>TFS is a scientific and rocket building company.</p>
+            </section>
+
+            <section id="services">
+                <h2>Services</h2>
+                <p>TFS store</p>
+                <p>TFS builders</p>
+                <p>TFS products</p>
+            </section>
+
+            <section id="work">
+                <h2>Choose a Task for Today</h2>
+                <form id="taskForm">
+                    <label for="task">Select Task:</label>
+                    <select name="task" id="task">
+                        <option value="idea">Give Ideas</option>
+                        <option value="build">Build Something</option>
+                        <option value="lead">Lead a Project</option>
+                    </select><br>
+                    <input type="text" name="name" placeholder="Your Name" required><br>
+                    <input type="text" name="id" placeholder="Your ID Number" required><br>
+                    <input type="submit" value="Submit Task">
+                </form>
+            </section>
+
+            <section id="contact">
+                <h2>Contact Us</h2>
+                <form action="#" method="post">
+                    <input type="text" name="name" placeholder="Your Name" required><br>
+                    <input type="email" name="email" placeholder="Your Email" required><br>
+                    <textarea name="message" placeholder="Your Message" required></textarea><br>
+                    <input type="submit" value="Send Message">
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <footer>
+        <p>© TFS 2023 ALL RIGHTS RESERVED</p>
+    </footer>
+
+    <script>
+        let captchaCode = "";
+
+        // Function to generate random CAPTCHA
+        function generateCaptcha() {
+            const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+            captchaCode = '';
+            for (let i = 0; i < 6; i++) {
+                captchaCode += chars[Math.floor(Math.random() * chars.length)];
+            }
+            document.getElementById("captcha-box").textContent = captchaCode;
+            document.getElementById("captcha-error").classList.add("hidden"); // Hide CAPTCHA error
+        }
+
+        // Call this function when the page loads to generate CAPTCHA
+        window.onload = generateCaptcha;
+
+        // Create Account functionality
+        document.getElementById("createAccountLink").addEventListener("click", function(event) {
+            event.preventDefault();
+            const username = prompt("Enter new username:");
+            const password = prompt("Enter new password:");
+
+            if (username && password) {
+                const users = JSON.parse(localStorage.getItem("users")) || [];
+                users.push({ username, password });
+                localStorage.setItem("users", JSON.stringify(users));
+                alert("Account created successfully!");
+            }
+        });
+
+        // Form submission event listener
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const userCaptcha = document.getElementById("captcha-input").value;
+
+            // CAPTCHA validation
+            if (userCaptcha !== captchaCode) {
+                document.getElementById("captcha-error").classList.remove("hidden");
+                generateCaptcha(); // Reload CAPTCHA
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem("users")) || [];
+            const validCredentials = users.some(function(account) {
+                return account.username === username && account.password === password;
+            });
+
+            if (validCredentials) {
+                document.getElementById("textBarrier").classList.remove("hidden");
+                document.getElementById("websiteContent").classList.remove("hidden");
+                document.getElementById("logoutButton").classList.remove("hidden");
+                document.getElementById("loginForm").reset(); // Clear form after login
+            } else {
+                alert("Invalid username or password.");
+            }
+        });
+
+        // Logout functionality
+        document.getElementById("logoutButton").addEventListener("click", function() {
+            document.getElementById("textBarrier").classList.add("hidden");
+            document.getElementById("websiteContent").classList.add("hidden");
+            document.getElementById("logoutButton").classList.add("hidden");
+        });
+    </script>
+
+</body>
+</html>
